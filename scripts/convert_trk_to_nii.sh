@@ -1,13 +1,16 @@
 #!/bin/bash
 
-tcks=$1
+TCKS=$1
 REFERENCE_FILE=$2
 tractmasks_folder=$3
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"
 
-echo $( ls ${tcks}/ )
-for tck_file in $( ls ${tcks}/ ); do
+if [ ! -d "$TCKS" ]; then
+    TCKS="${TCKS%/tcks}"
+fi
+
+for tck_file in $( ls ${TCKS}/*.tck ); do
     echo $tck_file
     base_name=$(basename "${tck_file}" .tck)
     output_file="${tractmasks_folder}/${base_name}.nii.gz"
