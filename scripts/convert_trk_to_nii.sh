@@ -6,7 +6,7 @@ tractmasks_folder=$3
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"
 
-
+echo $( ls ${tcks}/ )
 for tck_file in $( ls ${tcks}/ ); do
     echo $tck_file
     base_name=$(basename "${tck_file}" .tck)
