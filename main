@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1,vmem=8g,walltime=0:05:00
+#PBS -l nodes=1:ppn=1,vmem=8g,walltime=0:15:00
 #PBS -N app-tcks2tractmasks
 #PBS -V
 
@@ -9,7 +9,7 @@ tcks=$(jq -r .tcks config.json)
 mask=$(jq -r .fa config.json)
 
 #### tractmasks analysis
-output_dir=./output
+output_dir=./masks
 [ -d ${output_dir} ] || { mkdir ${output_dir}; }
 singularity exec -e docker://brainlife/dipy:1.4.1 bash ./scripts/convert_trk_to_nii.sh ${tcks} ${mask} ${output_dir}
 
