@@ -7,7 +7,7 @@ tractmasks_folder=$3
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"
 
 
-for tck_file in $( ls ${tcks}/*.tck ); do
+for tck_file in $( ls ${tcks}/ ); do
     echo $tck_file
     base_name=$(basename "${tck_file}" .tck)
     output_file="${tractmasks_folder}/${base_name}.nii.gz"
