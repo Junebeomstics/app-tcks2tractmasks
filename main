@@ -1,47 +1,16 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1,vmem=8g,walltime=0:05:00
-#PBS -N app-tracts-properties
+#PBS -N app-tcks2tractmasks
 #PBS -V
 
 # Extract fields from config.json
 
 tcks=$(jq -r .tcks config.json)
-t1w=$(jq -r .t1 config.json)
-t2w=$(jq -r .t2 config.json)
-parc=$(jq -r .parc config.json)
-mask=$(jq -r .mask config.json)
+mask=$(jq -r .fa config.json)
 
-trks=./trks
+#### tractmasks analysis
+output_dir=./tractmasks
+[ -d ${output_dir} ] || { mkdir ${output_dir}; }
+singularity exec -e docker://brainlife/dipy:1.4.1 bash ./scripts/convert_trk_to_nii.sh ${tcks} ${mask} ${output_dir}
 
-# Assign the first available field to 'anat'
-if [ -n "$t1w" ] && [ "$t1w" != "null" ]; then
-    anat=$t1w
-elif [ -n "$21w" ] && [ "$t1w" != "null" ]; then
-    anat=$t2w
-elif [ -n "$parc" ] && [ "$parc" != "null" ]; then
-    anat=$parc
-elif [ -n "$mask" ] && [ "$mask" != "null" ]; then
-    anat=$mask
-else
-    echo "Error: No valid anatomical reference found in config.json" >&2
-    exit 1
-fi
-
-
-##### Dipy analysis
-dipy_stat_dir=./dipy_stat
-[ -d ${dipy_stat_dir} ] || { mkdir ${dipy_stat_dir}; }
-singularity exec -e docker://brainlife/dipy:1.4.1 bash ./scripts/run_dipy_analysis.sh ${tcks} ${trks} ${anat} ${dipy_stat_dir} 
-
-##### DSI analysis
-dsi_stat_dir=./dsi_stat
-[ -d ${dsi_stat_dir} ] || { mkdir ${dsi_stat_dir}; }
-singularity exec --nv -e docker://dsistudio/dsistudio:hou-2024-12-26 bash ./scripts/run_dsi_analysis.sh ${trks} ${dsi_stat_dir}
-
-##### merging results
-stat_dir=./stat
-output=${stat_dir}/tractmeasures.csv
-[ -d ${stat_dir} ] || { mkdir ${stat_dir} ; }
-singularity exec -e docker://brainlife/dipy:1.4.1 bash ./scripts/run_stack_n_merge.sh ${dsi_stat_dir} ${dipy_stat_dir} ${stat_dir} ${output}
-
-
+echo "all done"
