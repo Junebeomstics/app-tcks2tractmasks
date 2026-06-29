@@ -1,14 +1,13 @@
 
-# tcks2tractmeasures
+# tcks2tractmasks
 
-`tcks2tractmeasures` is a pipeline for processing and analyzing tractography data. It computes a range of tract-specific metrics using **DSI Studio** (for geometric measures like length, area, and elongation) and **DIPY** (for advanced measures like curvature and torsion). Results are exported as structured statistics for further analysis.
+`tcks2tractmasks` is a pipeline for converting tractography streamline files (`.tck`) into binary NIfTI tract masks (`.nii.gz`). For each input tract, the pipeline upsamples the streamlines, computes a density map, and saves a binary volumetric mask that can be used for downstream ROI or overlap analyses.
 
 ---
 
 ## Author
 
-**Gabriele Amorosino**  
-*Email*: gabriele.amorosino@utexas.edu  
+**Junbeom Kwon**
 
 ---
 
@@ -16,16 +15,16 @@
 
 ### Running on Brainlife.io
 
-You can run the `tcks2tractmeasures` app on the [Brainlife.io platform](https://brainlife.io) via the web user interface (UI) or using the Brainlife CLI. This platform manages inputs and outputs and executes computations on its cloud resources.
+You can run the `tcks2tractmasks` app on the [Brainlife.io platform](https://brainlife.io) via the web user interface (UI) or using the Brainlife CLI. This platform manages inputs and outputs and executes computations on its cloud resources.
 
 #### On Brainlife.io via UI
 
-1. Navigate to the Brainlife.io platform and locate the `app-tcks2tractmeasures` app.
+1. Navigate to the Brainlife.io platform and locate the `app-tcks2tractmasks` app.
 2. Click the **Execute** tab.
 3. Upload the required input files:
-   - A folder containing _.tck_ files, encoded in BrainLife as `tcks` datatype.
-   - A reference image such as t1w, t2w, mask or parcellation.
-4. Submit the job and eventually download or visualize the results after computation completes.
+   - A folder containing `.tck` files, encoded in BrainLife as `tcks` datatype.
+   - A reference image (e.g., FA map or brain mask) with the same affine as the DWI data, encoded as `fa` datatype.
+4. Submit the job and download or visualize the results after computation completes.
 
 #### On Brainlife.io using CLI
 
@@ -36,29 +35,29 @@ You can run the `tcks2tractmeasures` app on the [Brainlife.io platform](https://
    ```
 3. Execute the app with the following command:
    ```bash
-   bl app run --id 67858b5e81d348aa56483324 --project <project_id> --input tcks:<tcks_id> --input reference:<reference_id>
+   bl app run --id <app_id> --project <project_id> --input tcks:<tcks_id> --input fa:<fa_id>
    ```
-   Replace `<project_id>`, and input IDs with the appropriate values. The output will be saved in the specified project.
+   Replace `<app_id>`, `<project_id>`, and input IDs with the appropriate values. The output will be saved in the specified project.
 
 ---
 
 ### Running Locally
 
-You can also run the pipeline locally by preparing a configuration file and executing the scripts.
+You can also run the pipeline locally by preparing a configuration file and executing the main script.
 
 #### Steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/gamorosino/app-tcks2tractmeasures.git
-   cd app-tcks2tractmeasures
+   git clone https://github.com/junbeomkwon/app-tcks2tractmasks.git
+   cd app-tcks2tractmasks
    ```
 
-2. Prepare a `config.json` file to specify input paths and output options. Example:
+2. Prepare a `config.json` file to specify input paths. Example:
    ```json
    {
        "tcks": "/path/to/tcks",
-       "t1": "/path/to/t1.nii"
+       "fa": "/path/to/fa.nii.gz"
    }
    ```
 
@@ -71,9 +70,17 @@ You can also run the pipeline locally by preparing a configuration file and exec
 
 ## Outputs
 
-The results are saved in the `stat/tractmeasures.csv` file, which includes:
-  - **Geometric Measures**: Metrics such as length, span, volume, diameter, surface area, curl, elongation, and irregularity, calculated using DSI Studio.
-  - **Streamline Properties**: Average curvature and torsion values, computed using DIPY.
+Binary tract masks are saved in the `masks/masks/` directory, one `.nii.gz` file per input `.tck` file. Each mask is a binary NIfTI volume where voxels traversed by at least one streamline are set to 1.
+
+---
+
+## Pipeline Overview
+
+| Step | Script | Description |
+|------|--------|-------------|
+| 1 | `main` | Reads `config.json`, sets up output directory, launches Singularity container |
+| 2 | `scripts/convert_trk_to_nii.sh` | Iterates over all `.tck` files in the input folder |
+| 3 | `scripts/trk_2_binary.py` | Upsamples streamlines, computes density map, saves binary mask |
 
 ---
 
@@ -86,11 +93,6 @@ The results are saved in the `stat/tractmeasures.csv` file, which includes:
 ## Citation
 
 If you use this repository in your research, please cite the following:
-
-- **DSI Studio**:  
-  Yeh, F.-C. (2020). Shape analysis of the human association pathways.  
-  *Neuroimage, 223*, 117329.  
-  [DOI: 10.1016/j.neuroimage.2020.117329](https://doi.org/10.1016/j.neuroimage.2020.117329)
 
 - **DIPY**:  
   Garyfallidis, E., et al. (2014). DIPY, a library for the analysis of diffusion MRI data.  
@@ -105,4 +107,5 @@ If you use this repository in your research, please cite the following:
 ---
 
 ## Acknowledgments
-The script for converting tck files to trk (tck2trk.py) is based on the work of Marc-Alexandre Côté (https://gist.github.com/MarcCote/ea6842cc4c3950f7596fc3c8a0be0154).
+
+This app was developed based on the original `app-tcks2tractmeasures` pipeline by **Gabriele Amorosino** (gabriele.amorosino@utexas.edu).
