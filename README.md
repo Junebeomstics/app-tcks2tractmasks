@@ -1,6 +1,35 @@
 
 # tcks2tractmasks
 
+<!-- brainlife-app:begin (generated from the App manifest; edit the manifest, not this block) -->
+
+> **Converts each .tck tract of a collection into a binary NIfTI tract mask on the grid of a reference FA image, using TractSeg's streamline-to-mask script with DIPY.**
+
+For every .tck file the streamlines are upsampled, mapped to a density image on the FA voxel grid, binarised and cleaned of small blobs, and saved as a mask named after the tract. Use it to obtain tract masks for overlap, ROI or fractal-dimension analyses. The FA must share the affine of the DWI the tracts were made from.
+
+| | |
+|---|---|
+| 📥 **Inputs** | `neuro/tcks` · `neuro/tensor` |
+| 📤 **Outputs** | `neuro/tractmasks` |
+| 🐳 **Container** | `brainlife/dipy:1.4.1` |
+| ⚙️ **Resources** | 1 CPUs · 0.33 h walltime |
+| 🔗 **Run it** | [doi.org/10.25663/brainlife.app.852](https://doi.org/10.25663/brainlife.app.852) |
+
+#### 📥 Inputs
+
+| Input | Datatype | Required | Description |
+|---|---|---|---|
+| `tcks` | `neuro/tcks` | yes | Collection of tract streamline files (.tck). |
+| `tensor` | `neuro/tensor` | yes | Tensor maps; the FA image is used as the reference grid for the masks. |
+
+#### 📤 Outputs
+
+| Output | Datatype | Description |
+|---|---|---|
+| `masks` | `neuro/tractmasks` | One binary NIfTI mask per tract, named after the .tck file. |
+
+<!-- brainlife-app:end -->
+
 `tcks2tractmasks` is a pipeline for converting tractography streamline files (`.tck`) into binary NIfTI tract masks (`.nii.gz`). For each input tract, the pipeline upsamples the streamlines, computes a density map, and saves a binary volumetric mask that can be used for downstream ROI or overlap analyses.
 
 ---
