@@ -1,45 +1,42 @@
-<h1 align="center">Tract Shape Analysis</h1>
+<h1 align="center">app-tcks2tractmasks</h1>
 
 <p align="center">
-  Computes tract shape measures (length, span, area, volume, elongation, curvature, torsion and more) for each tract in a tcks folder with DSI Studio and DIPY and merges them into one tractmeasures CSV.
+  Converts each .tck tract of a collection into a binary NIfTI tract mask on the grid of a reference FA image, using TractSeg's streamline-to-mask script with DIPY.
 </p>
 
 <p align="center">
   <a href="https://github.com/brainlife/abcd-spec"><img src="https://img.shields.io/badge/ABCD_Spec-v1.1-green.svg" alt="ABCD Spec v1.1"></a>
-  <a href="https://doi.org/10.25663/brainlife.app.844"><img src="https://img.shields.io/badge/Brainlife-brainlife.app.844-blue.svg" alt="Run on brainlife.io"></a>
+  <a href="https://doi.org/10.25663/brainlife.app.852"><img src="https://img.shields.io/badge/Brainlife-brainlife.app.852-blue.svg" alt="Run on brainlife.io"></a>
 </p>
 
 ## At a glance
 
 <!-- brainlife-app:begin (generated from the App manifest; edit the manifest, not this block) -->
 
-> **Computes tract shape measures (length, span, area, volume, elongation, curvature, torsion and more) for each tract in a tcks folder with DSI Studio and DIPY and merges them into one tractmeasures CSV.**
+> **Converts each .tck tract of a collection into a binary NIfTI tract mask on the grid of a reference FA image, using TractSeg's streamline-to-mask script with DIPY.**
 
-Converts each .tck to .trk using a reference image, computes geometric shape statistics with DSI Studio and curvature/torsion with DIPY, and stacks and merges them into stat/tractmeasures.csv. Only one reference image is needed: the first available of T1w, T2w, parcellation or mask is used. Use it to characterise tract morphology for group analyses.
+For every .tck file the streamlines are upsampled, mapped to a density image on the FA voxel grid, binarised and cleaned of small blobs, and saved as a mask named after the tract. Use it to obtain tract masks for overlap, ROI or fractal-dimension analyses. The FA must share the affine of the DWI the tracts were made from.
 
 | | |
 |---|---|
-| **Inputs** | `neuro/tcks` · `neuro/anat/t1w` (optional) · `neuro/anat/t2w` (optional) · `neuro/mask` (optional) · `neuro/parcellation/volume` (optional) |
-| **Outputs** | `neuro/tractmeasures` |
+| **Inputs** | `neuro/tcks` · `neuro/tensor` |
+| **Outputs** | `neuro/tractmasks` |
 | **Container** | `brainlife/dipy:1.4.1` |
-| **Resources** | 1 CPUs · 0.92 h walltime |
-| **Run it** | [doi.org/10.25663/brainlife.app.844](https://doi.org/10.25663/brainlife.app.844) |
+| **Resources** | 1 CPUs · 0.33 h walltime |
+| **Run it** | [doi.org/10.25663/brainlife.app.852](https://doi.org/10.25663/brainlife.app.852) |
 
 #### Inputs
 
 | Input | Datatype | Required | Description |
 |---|---|---|---|
-| `tcks` | `neuro/tcks` | yes | Directory of per-tract .tck files. Must contain at least one .tck file. |
-| `t1` | `neuro/anat/t1w` | no | T1-weighted reference image (used first if present). |
-| `t2` | `neuro/anat/t2w` | no | T2-weighted reference image (used if no T1w is given). |
-| `mask` | `neuro/mask` | no | Mask used as reference image if no anatomical image is given. |
-| `parc` | `neuro/parcellation/volume` | no | Parcellation used as reference image if no anatomical image is given. |
+| `tcks` | `neuro/tcks` | yes | Collection of tract streamline files (.tck). |
+| `tensor` | `neuro/tensor` | yes | Tensor maps; the FA image is used as the reference grid for the masks. |
 
 #### Outputs
 
 | Output | Datatype | Description |
 |---|---|---|
-| `stat` | `neuro/tractmeasures` | Tract measures table (tractmeasures.csv) with one row per tract and DSI Studio and DIPY shape metrics. |
+| `masks` | `neuro/tractmasks` | One binary NIfTI mask per tract, named after the .tck file. |
 
 <!-- brainlife-app:end -->
 
@@ -47,7 +44,7 @@ Converts each .tck to .trk using a reference image, computes geometric shape sta
 
 ### On brainlife.io
 
-Open the App at [doi.org/10.25663/brainlife.app.844](https://doi.org/10.25663/brainlife.app.844), choose `neuro/tcks`, `neuro/anat/t1w`, `neuro/anat/t2w`, `neuro/mask`, `neuro/parcellation/volume` from your project and press **Execute**. The results are saved to your project as `neuro/tractmeasures`.
+Open the App at [doi.org/10.25663/brainlife.app.852](https://doi.org/10.25663/brainlife.app.852), choose `neuro/tcks`, `neuro/tensor` from your project and press **Execute**. The results are saved to your project as `neuro/tractmasks`.
 
 ### Locally
 
@@ -60,35 +57,48 @@ You need [Singularity/Apptainer](https://apptainer.org/) (the App runs in `brain
    {
        "tcks": "/path/to/tcks/tcks",
        "tcks_json": "/path/to/tcks/tcks_json",
-       "t1": "/path/to/t1/t1",
-       "t2": "/path/to/t2/t2",
-       "mask": "/path/to/mask/mask",
-       "parc": "/path/to/parc/parc",
-       "key": "/path/to/parc/key",
-       "label": "/path/to/parc/label"
+       "fa": "/path/to/tensor/fa",
+       "md": "/path/to/tensor/md",
+       "rd": "/path/to/tensor/rd",
+       "ad": "/path/to/tensor/ad",
+       "cl": "/path/to/tensor/cl",
+       "cp": "/path/to/tensor/cp",
+       "cs": "/path/to/tensor/cs",
+       "tensors": "/path/to/tensor/tensors",
+       "kurtosis": "/path/to/tensor/kurtosis",
+       "ga": "/path/to/tensor/ga",
+       "mk": "/path/to/tensor/mk",
+       "ak": "/path/to/tensor/ak",
+       "rk": "/path/to/tensor/rk",
+       "rgb": "/path/to/tensor/rgb"
    }
    ```
 
 3. Run `./main`.
 
-## Troubleshooting
+## Pipeline Overview
 
-- **Error: no .tck files found in directory**: Provide a tcks dataset containing .tck files.
+| Step | Script | Description |
+|------|--------|-------------|
+| 1 | `main` | Reads `config.json`, sets up output directory, launches Singularity container |
+| 2 | `scripts/convert_trk_to_nii.sh` | Iterates over all `.tck` files in the input folder |
+| 3 | `scripts/trk_2_binary.py` | Upsamples streamlines, computes density map, saves binary mask |
+
+---
 
 ## Citing
 
 If you use this App, please cite it, the software it builds on and brainlife.io:
 
-- Tract Shape Analysis. brainlife.io App. [doi:10.25663/brainlife.app.844](https://doi.org/10.25663/brainlife.app.844)
-- **DSI Studio**: Yeh, F.-C. (2020). Shape analysis of the human association pathways. *Neuroimage, 223*, 117329. [DOI: 10.1016/j.neuroimage.2020.117329](https://doi.org/10.1016/j.neuroimage.2020.117329)
+- app-tcks2tractmasks. brainlife.io App. [doi:10.25663/brainlife.app.852](https://doi.org/10.25663/brainlife.app.852)
 - **DIPY**: Garyfallidis, E., et al. (2014). DIPY, a library for the analysis of diffusion MRI data. *Frontiers in Neuroinformatics, 8*, 8. [DOI: 10.3389/fninf.2014.00008](https://doi.org/10.3389/fninf.2014.00008)
+- Wasserthal et al. TractSeg - Fast and accurate white matter tract segmentation. *NeuroImage* 183:239-253 (2018). [doi:10.1016/j.neuroimage.2018.07.070](https://doi.org/10.1016/j.neuroimage.2018.07.070)
 - Hayashi S, Caron BA, Heinsfeld AS, et al. brainlife.io: a decentralized and open-source cloud platform to support neuroscience research. *Nature Methods* 21:809–813 (2024). [doi:10.1038/s41592-024-02237-2](https://doi.org/10.1038/s41592-024-02237-2)
 - Avesani P, McPherson B, Hayashi S, et al. The open diffusion data derivatives, brain data upcycling via integrated publishing of derivatives and reproducible open cloud services. *Scientific Data* 6:69 (2019). [doi:10.1038/s41597-019-0073-y](https://doi.org/10.1038/s41597-019-0073-y)
 
 ## Authors
 
-**Gabriele Amorosino**  
-*Email*:  
+**Junbeom Kwon**
 
 ---
 
